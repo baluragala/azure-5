@@ -1,5 +1,7 @@
 # Case Study 1: Enterprise-Grade Infrastructure Deployment
+
 ## SecureInsure — ARM Templates & Bicep
+
 ### Time: 50 Minutes
 
 ---
@@ -7,6 +9,7 @@
 ## Scenario
 
 SecureInsure, a multinational insurance firm, wants to:
+
 - Deploy a highly available web application across **two Azure regions**
 - Use **parameterized ARM templates** for dev/staging/production consistency
 - **Convert to Bicep** for better developer experience
@@ -42,15 +45,15 @@ SecureInsure, a multinational insurance firm, wants to:
 
 ## What's Deployed
 
-| Resource | Purpose |
-|----------|---------|
-| Virtual Network | Network isolation with address space |
-| Web Subnet | Hosts web-tier VMs |
-| App Subnet | Hosts application-tier VMs |
-| NSG (Web) | Allows HTTP/HTTPS, blocks everything else |
-| NSG (App) | Allows traffic from web subnet only |
-| Public IP | For VM access during demo |
-| VM (Ubuntu) | Example workload |
+| Resource        | Purpose                                   |
+| --------------- | ----------------------------------------- |
+| Virtual Network | Network isolation with address space      |
+| Web Subnet      | Hosts web-tier VMs                        |
+| App Subnet      | Hosts application-tier VMs                |
+| NSG (Web)       | Allows HTTP/HTTPS, blocks everything else |
+| NSG (App)       | Allows traffic from web subnet only       |
+| Public IP       | For VM access during demo                 |
+| VM (Ubuntu)     | Example workload                          |
 
 ---
 
@@ -82,6 +85,7 @@ case-study-1/
 ## Step-by-Step Lab Guide
 
 ### Prerequisites
+
 ```bash
 # Verify Azure CLI is installed
 az --version
@@ -105,6 +109,7 @@ cat case-study-1/arm/main.json | python3 -m json.tool | head -80
 ```
 
 **Key questions to discuss:**
+
 - What parameters does it accept?
 - What resources does it create?
 - What are the `dependsOn` relationships?
@@ -231,15 +236,16 @@ Traffic travels over **Microsoft's private backbone** — it never touches the p
 
 ### Why Use VNet Peering?
 
-| Without Peering | With VNet Peering |
-|----------------|-------------------|
-| VMs in different VNets cannot reach each other privately | Full private connectivity between VNets |
-| DR replication requires public IPs or VPN | DR replication over private IPs, no VPN cost |
-| Failover requires DNS/routing changes | No routing changes needed on failover |
-| VPN gateway adds ~$140+/month | Peering is billed per GB transferred, no gateway fee |
-| VPN adds 1-5ms latency | Near-LAN latency over the Azure backbone |
+| Without Peering                                          | With VNet Peering                                    |
+| -------------------------------------------------------- | ---------------------------------------------------- |
+| VMs in different VNets cannot reach each other privately | Full private connectivity between VNets              |
+| DR replication requires public IPs or VPN                | DR replication over private IPs, no VPN cost         |
+| Failover requires DNS/routing changes                    | No routing changes needed on failover                |
+| VPN gateway adds ~$140+/month                            | Peering is billed per GB transferred, no gateway fee |
+| VPN adds 1-5ms latency                                   | Near-LAN latency over the Azure backbone             |
 
 **For SecureInsure's DR strategy, peering enables:**
+
 - Database replication from primary to DR at low latency
 - Application health checks across regions without public exposure
 - Seamless failover — the DR VM already knows the primary's private IPs
@@ -289,6 +295,7 @@ vnet-peering.bicep          ← targetScope = 'subscription'
 Deploy the same template to East US 2 using the DR parameter files.
 
 **Option A — Bicep:**
+
 ```bash
 # Create the DR resource group in East US 2
 az group create --name rg-secureinsure-dr --location eastus2
@@ -298,10 +305,11 @@ az deployment group create \
   --name "deploy-dr-$(date +%Y%m%d-%H%M%S)" \
   --resource-group rg-secureinsure-dr \
   --template-file case-study-1/bicep/main.bicep \
-  --parameters @case-study-1/bicep/main.dr.bicepparam
+  --parameters case-study-1/bicep/main.dr.bicepparam
 ```
 
 **Option B — ARM:**
+
 ```bash
 az group create --name rg-secureinsure-dr --location eastus2
 
@@ -367,6 +375,7 @@ nc -zv 10.2.1.4 22
 ```
 
 **What to observe:**
+
 - Without peering: ping times out (no route exists)
 - With peering: ping succeeds via private IP, no public Internet involved
 - `az network vnet peering show` → check `peeringState`, `remoteAddressSpace`
@@ -388,14 +397,14 @@ az group delete --name rg-secureinsure-dr --yes --no-wait
 
 ## Key Concepts Demonstrated
 
-| Concept | Where Demonstrated |
-|---------|-------------------|
-| Parameterized templates | `params.dev/staging/prod.json` |
-| Resource dependencies | `dependsOn` in ARM, implicit in Bicep |
-| Multi-environment reuse | Same template, 3 different param files |
-| ARM → Bicep migration | `az bicep decompile` command |
-| Multi-region deployment | `params.dr.json` / `main.dr.bicepparam` → eastus2 |
-| VNet Peering (what/why/how) | VNet Peering section above |
-| Cross-RG Bicep deployment | `vnet-peering.bicep` with `targetScope = 'subscription'` |
-| Bicep modules | `modules/peer-link.bicep` called twice with different scopes |
-| Existing resource references | `resource ... existing = { scope: resourceGroup(...) }` |
+| Concept                      | Where Demonstrated                                           |
+| ---------------------------- | ------------------------------------------------------------ |
+| Parameterized templates      | `params.dev/staging/prod.json`                               |
+| Resource dependencies        | `dependsOn` in ARM, implicit in Bicep                        |
+| Multi-environment reuse      | Same template, 3 different param files                       |
+| ARM → Bicep migration        | `az bicep decompile` command                                 |
+| Multi-region deployment      | `params.dr.json` / `main.dr.bicepparam` → eastus2            |
+| VNet Peering (what/why/how)  | VNet Peering section above                                   |
+| Cross-RG Bicep deployment    | `vnet-peering.bicep` with `targetScope = 'subscription'`     |
+| Bicep modules                | `modules/peer-link.bicep` called twice with different scopes |
+| Existing resource references | `resource ... existing = { scope: resourceGroup(...) }`      |
