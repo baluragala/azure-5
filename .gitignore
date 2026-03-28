@@ -1,0 +1,36 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+*.swp
+*.swo
+
+# Azure CLI cache
+.azure/
+
+# Claude Code settings
+.claude/
+
+# Secrets — never commit real credentials
+*.env
+*.env.*
+secrets.json
+credentials.json
+
+# ARM template deployment outputs (may contain sensitive info)
+*.deploymentoutput.json
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Node (if any tooling is added)
+node_modules/
+
+# Temp files
+*.tmp
+*.log
+/tmp/

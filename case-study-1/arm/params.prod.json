@@ -1,0 +1,33 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "prefix": {
+      "value": "secureinsure"
+    },
+    "environment": {
+      "value": "prod"
+    },
+    "location": {
+      "value": "eastus"
+    },
+    "vnetAddressPrefix": {
+      "value": "10.4.0.0/16"
+    },
+    "webSubnetPrefix": {
+      "value": "10.4.1.0/24"
+    },
+    "appSubnetPrefix": {
+      "value": "10.4.2.0/24"
+    },
+    "vmSize": {
+      "value": "Standard_D2_v3"
+    },
+    "adminUsername": {
+      "value": "azureadmin"
+    },
+    "adminPassword": {
+      "value": "P@ssw0rd2024!Prd"
+    }
+  }
+}

@@ -1,0 +1,1994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Introduction to Azure - II | Live Session</title>
+<style>
+  :root {
+    --azure-blue: #0078d4;
+    --azure-dark: #003a70;
+    --azure-light: #50e6ff;
+    --azure-teal: #00b4d8;
+    --bg-dark: #0d1117;
+    --bg-card: #161b22;
+    --bg-card2: #1c2330;
+    --text-main: #e6edf3;
+    --text-muted: #8b949e;
+    --text-accent: #58a6ff;
+    --green: #3fb950;
+    --yellow: #d29922;
+    --red: #f85149;
+    --orange: #f0883e;
+    --purple: #bc8cff;
+    --border: #30363d;
+    --code-bg: #0d1117;
+    --hands-on: #1a2d1a;
+    --hands-on-border: #3fb950;
+    --part-banner: #0a1628;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg-dark);
+    color: var(--text-main);
+    height: 100vh;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  /* ── Layout ── */
+  #app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+
+  /* ── Top Bar ── */
+  #topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 20px;
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    gap: 12px;
+  }
+
+  #session-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--azure-light);
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+  }
+
+  #part-label {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: var(--azure-dark);
+    color: var(--azure-light);
+    border: 1px solid var(--azure-blue);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  #timer-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  #timer {
+    font-family: 'Courier New', monospace;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--azure-light);
+    min-width: 60px;
+    text-align: center;
+  }
+
+  #timer-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    border-radius: 4px;
+    padding: 2px 8px;
+    cursor: pointer;
+    font-size: 11px;
+    transition: all 0.2s;
+  }
+  #timer-btn:hover { border-color: var(--azure-blue); color: var(--azure-light); }
+
+  #slide-counter {
+    font-size: 13px;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+  #slide-counter span { color: var(--text-main); font-weight: 600; }
+
+  /* ── Progress Bar ── */
+  #progress-track {
+    height: 3px;
+    background: var(--border);
+    flex-shrink: 0;
+    position: relative;
+  }
+  #progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--azure-blue), var(--azure-light));
+    transition: width 0.3s ease;
+    border-radius: 0 2px 2px 0;
+  }
+
+  /* ── Slide Stage ── */
+  #stage {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    padding: 40px 60px;
+    overflow-y: auto;
+    display: none;
+    flex-direction: column;
+    animation: slideIn 0.25s ease;
+  }
+  .slide.active { display: flex; }
+  .slide.prev { animation: slideOut 0.25s ease; }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(30px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  /* ── Bottom Nav ── */
+  #nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px;
+    background: var(--bg-card);
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-main);
+    border-radius: 6px;
+    padding: 7px 16px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+  .nav-btn:hover:not(:disabled) {
+    border-color: var(--azure-blue);
+    color: var(--azure-light);
+    background: rgba(0,120,212,0.08);
+  }
+  .nav-btn:disabled { opacity: 0.3; cursor: default; }
+  .nav-btn.primary {
+    background: var(--azure-blue);
+    border-color: var(--azure-blue);
+    color: #fff;
+  }
+  .nav-btn.primary:hover:not(:disabled) {
+    background: #106ebe;
+    color: #fff;
+  }
+
+  #nav-center {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--border);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .dot.active { background: var(--azure-blue); transform: scale(1.3); }
+  .dot:hover { background: var(--text-muted); }
+
+  #notes-toggle {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    border-radius: 6px;
+    padding: 7px 14px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s;
+  }
+  #notes-toggle:hover { border-color: var(--yellow); color: var(--yellow); }
+  #notes-toggle.on { border-color: var(--yellow); color: var(--yellow); background: rgba(210,153,34,0.08); }
+
+  /* ── Notes Panel ── */
+  #notes-panel {
+    background: var(--bg-card2);
+    border-top: 2px solid var(--yellow);
+    padding: 12px 20px;
+    font-size: 13px;
+    color: var(--yellow);
+    max-height: 120px;
+    overflow-y: auto;
+    flex-shrink: 0;
+    display: none;
+  }
+  #notes-panel.visible { display: block; }
+  #notes-panel strong { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px; }
+
+  /* ── Slide Typography ── */
+  .slide-part-banner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    text-align: center;
+    gap: 16px;
+  }
+
+  .part-badge {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--azure-light);
+    border: 1px solid var(--azure-blue);
+    padding: 4px 16px;
+    border-radius: 20px;
+    background: rgba(0,120,212,0.1);
+  }
+
+  .slide h1 {
+    font-size: 2em;
+    font-weight: 700;
+    color: var(--azure-light);
+    line-height: 1.2;
+  }
+
+  .slide h2 {
+    font-size: 1.5em;
+    font-weight: 700;
+    color: var(--text-main);
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--azure-blue);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .slide h2 .slide-num {
+    font-size: 0.55em;
+    font-weight: 600;
+    color: var(--azure-blue);
+    background: rgba(0,120,212,0.1);
+    border: 1px solid var(--azure-blue);
+    border-radius: 4px;
+    padding: 2px 8px;
+    white-space: nowrap;
+  }
+
+  .slide h3 {
+    font-size: 1em;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin: 14px 0 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.8em;
+  }
+
+  .slide p { line-height: 1.7; color: var(--text-main); margin-bottom: 10px; }
+
+  .slide ul, .slide ol {
+    padding-left: 20px;
+    line-height: 1.9;
+    color: var(--text-main);
+    margin-bottom: 12px;
+  }
+
+  .slide li { margin-bottom: 3px; }
+  .slide li::marker { color: var(--azure-blue); }
+
+  .slide strong { color: var(--azure-light); font-weight: 600; }
+
+  .slide em { color: var(--text-muted); font-style: italic; }
+
+  .slide blockquote {
+    border-left: 3px solid var(--azure-blue);
+    padding: 10px 16px;
+    background: rgba(0,120,212,0.06);
+    border-radius: 0 6px 6px 0;
+    color: var(--azure-light);
+    font-style: italic;
+    margin: 12px 0;
+    font-size: 1.05em;
+  }
+
+  /* ── Code Blocks ── */
+  .code-block {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin: 10px 0;
+    overflow: hidden;
+    font-size: 0.82em;
+  }
+
+  .code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 12px;
+    background: var(--bg-card2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .code-lang {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-muted);
+  }
+  .code-lang.bash { color: var(--green); }
+  .code-lang.json { color: var(--orange); }
+  .code-lang.bicep { color: var(--purple); }
+
+  .copy-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    border-radius: 4px;
+    padding: 2px 8px;
+    cursor: pointer;
+    font-size: 10px;
+    transition: all 0.2s;
+  }
+  .copy-btn:hover { border-color: var(--green); color: var(--green); }
+  .copy-btn.copied { color: var(--green); border-color: var(--green); }
+
+  .code-body {
+    padding: 14px 16px;
+    overflow-x: auto;
+    font-family: 'Courier New', 'Consolas', monospace;
+    line-height: 1.6;
+    white-space: pre;
+    color: #e6edf3;
+  }
+
+  /* syntax tokens */
+  .t-kw  { color: #ff7b72; }   /* keyword */
+  .t-str { color: #a5d6ff; }   /* string */
+  .t-num { color: #79c0ff; }   /* number */
+  .t-cmt { color: #8b949e; font-style: italic; } /* comment */
+  .t-fn  { color: #d2a8ff; }   /* function */
+  .t-op  { color: #ff7b72; }   /* operator */
+  .t-flag{ color: #ffa657; }   /* cli flag */
+  .t-var { color: #79c0ff; }   /* variable */
+  .t-path{ color: #a5d6ff; }   /* path */
+  .t-key { color: #7ee787; }   /* json key */
+
+  /* ── Tables ── */
+  .slide table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88em;
+    margin: 12px 0;
+  }
+  .slide th {
+    background: rgba(0,120,212,0.15);
+    color: var(--azure-light);
+    padding: 9px 14px;
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 2px solid var(--azure-blue);
+    font-size: 0.9em;
+  }
+  .slide td {
+    padding: 8px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-main);
+    vertical-align: top;
+  }
+  .slide tr:hover td { background: rgba(255,255,255,0.02); }
+  .slide td code, .slide th code {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 1px 5px;
+    font-family: monospace;
+    font-size: 0.9em;
+    color: var(--purple);
+  }
+
+  /* ── Special slide types ── */
+  .hands-on-slide {
+    border-left: 4px solid var(--green);
+    padding-left: 56px !important;
+  }
+  .hands-on-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--hands-on);
+    border: 1px solid var(--hands-on-border);
+    color: var(--green);
+    border-radius: 6px;
+    padding: 4px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  /* ── Architecture Diagrams (HTML/CSS) ── */
+  .arch-diagram {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.75em;
+    line-height: 1.5;
+    color: #e6edf3;
+    overflow-x: auto;
+    white-space: pre;
+    margin: 12px 0;
+  }
+
+  /* ── Visual 3-tier diagram ── */
+  .tier-diagram {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 14px 0;
+  }
+
+  .tier-box {
+    border-radius: 8px;
+    padding: 12px 16px;
+    border: 1px solid;
+    position: relative;
+  }
+  .tier-box.web  { border-color: var(--azure-blue); background: rgba(0,120,212,0.08); }
+  .tier-box.app  { border-color: var(--purple);     background: rgba(188,140,255,0.06); }
+  .tier-box.db   { border-color: var(--orange);     background: rgba(240,136,62,0.06); }
+  .tier-box.fw   { border-color: var(--red);        background: rgba(248,81,73,0.06); }
+
+  .tier-title {
+    font-weight: 700;
+    font-size: 0.85em;
+    margin-bottom: 4px;
+  }
+  .tier-box.web .tier-title { color: var(--azure-light); }
+  .tier-box.app .tier-title { color: var(--purple); }
+  .tier-box.db  .tier-title { color: var(--orange); }
+  .tier-box.fw  .tier-title { color: var(--red); }
+
+  .tier-meta { font-size: 0.75em; color: var(--text-muted); }
+  .tier-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+  .tag {
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+  }
+  .tag.nsg  { background: rgba(0,120,212,0.2); color: var(--azure-light); border: 1px solid rgba(0,120,212,0.4); }
+  .tag.asg  { background: rgba(188,140,255,0.15); color: var(--purple); border: 1px solid rgba(188,140,255,0.4); }
+  .tag.port { background: rgba(63,185,80,0.1); color: var(--green); border: 1px solid rgba(63,185,80,0.3); }
+  .tag.udr  { background: rgba(248,81,73,0.1); color: var(--red); border: 1px solid rgba(248,81,73,0.3); }
+
+  .tier-arrow {
+    text-align: center;
+    font-size: 0.75em;
+    color: var(--text-muted);
+    padding: 2px 0;
+  }
+
+  /* ── Two-col layout ── */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 10px 0;
+  }
+
+  .col-card {
+    background: var(--bg-card2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+  }
+  .col-card h3 { margin-top: 0; color: var(--text-muted) !important; }
+
+  /* ── Comparison Cards ── */
+  .comparison {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 12px 0;
+  }
+  .cmp-card {
+    border-radius: 8px;
+    padding: 14px;
+    border: 1px solid;
+  }
+  .cmp-card.old { border-color: var(--red);   background: rgba(248,81,73,0.05); }
+  .cmp-card.new { border-color: var(--green); background: rgba(63,185,80,0.05); }
+  .cmp-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 8px;
+  }
+  .cmp-card.old .cmp-title { color: var(--red); }
+  .cmp-card.new .cmp-title { color: var(--green); }
+  .cmp-card ul { margin: 0; padding-left: 16px; }
+  .cmp-card li { font-size: 0.85em; line-height: 1.7; }
+
+  /* ── Route table visual ── */
+  .route-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.83em;
+    font-family: monospace;
+    margin: 10px 0;
+  }
+  .route-table th {
+    background: rgba(248,81,73,0.15);
+    color: var(--red);
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+  }
+  .route-table td {
+    padding: 7px 12px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-main);
+  }
+  .route-table td.dest { color: var(--orange); }
+  .route-table td.hop  { color: var(--red); }
+  .route-table td.ip   { color: var(--green); }
+
+  /* ── Summary cards ── */
+  .summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 12px;
+  }
+  .summary-card {
+    background: var(--bg-card2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+  }
+  .summary-card h3 {
+    color: var(--azure-light) !important;
+    font-size: 0.85em !important;
+    margin-bottom: 8px !important;
+    text-transform: none !important;
+    letter-spacing: 0 !important;
+  }
+  .summary-card li { font-size: 0.85em; }
+  .summary-card .check { color: var(--green); }
+
+  /* ── Key Takeaways ── */
+  .takeaway-list { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+  .takeaway {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    background: var(--bg-card2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    transition: border-color 0.2s;
+  }
+  .takeaway:hover { border-color: var(--azure-blue); }
+  .takeaway-num {
+    min-width: 28px; height: 28px;
+    background: var(--azure-blue);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 13px;
+    flex-shrink: 0;
+  }
+  .takeaway-body strong { color: var(--azure-light); display: block; margin-bottom: 2px; }
+  .takeaway-body span { font-size: 0.85em; color: var(--text-muted); }
+
+  /* ── Q&A cards ── */
+  .qa-list { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+  .qa-item {
+    background: var(--bg-card2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+  }
+  .qa-q { color: var(--yellow); font-weight: 600; font-size: 0.9em; margin-bottom: 4px; }
+  .qa-a { color: var(--text-muted); font-size: 0.85em; }
+  .qa-a strong { color: var(--azure-light); }
+
+  /* ── Next topics ── */
+  .next-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 12px;
+  }
+  .next-item {
+    background: var(--bg-card2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.88em;
+    font-weight: 500;
+  }
+  .next-icon { font-size: 1.4em; }
+
+  /* ── Agenda visual ── */
+  .agenda-row {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    margin-bottom: 6px;
+  }
+  .agenda-time {
+    min-width: 70px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--azure-blue);
+    font-family: monospace;
+    padding: 10px 12px 10px 0;
+    display: flex;
+    align-items: center;
+  }
+  .agenda-bar {
+    width: 3px;
+    border-radius: 2px;
+    margin-right: 12px;
+    flex-shrink: 0;
+  }
+  .agenda-bar.p1 { background: var(--azure-blue); }
+  .agenda-bar.p2a { background: var(--purple); }
+  .agenda-bar.p2b { background: var(--orange); }
+  .agenda-bar.p3 { background: var(--green); }
+
+  .agenda-content {
+    flex: 1;
+    background: var(--bg-card2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 12px;
+  }
+  .agenda-content .label {
+    font-weight: 700;
+    font-size: 0.88em;
+    margin-bottom: 2px;
+  }
+  .agenda-content .sub {
+    font-size: 0.75em;
+    color: var(--text-muted);
+  }
+
+  /* ── NSG rule table ── */
+  .nsg-table { width: 100%; border-collapse: collapse; font-size: 0.78em; margin: 8px 0; }
+  .nsg-table th { background: rgba(0,120,212,0.15); color: var(--azure-light); padding: 7px 10px; border-bottom: 1px solid var(--border); text-align: left; }
+  .nsg-table td { padding: 6px 10px; border-bottom: 1px solid rgba(48,54,61,0.5); font-family: monospace; }
+  .nsg-table .allow { color: var(--green); font-weight: 700; }
+  .nsg-table .deny  { color: var(--red); font-weight: 700; }
+  .nsg-table .pri-hi { color: var(--azure-light); }
+  .nsg-table .pri-lo { color: var(--red); }
+
+  /* ── Tooltip ── */
+  .tooltip {
+    position: fixed;
+    background: var(--bg-card2);
+    border: 1px solid var(--azure-blue);
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 12px;
+    color: var(--azure-light);
+    pointer-events: none;
+    z-index: 999;
+    display: none;
+  }
+
+  /* ── Keyboard shortcut overlay ── */
+  #shortcuts-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.8);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+  }
+  #shortcuts-overlay.visible { display: flex; }
+  .shortcuts-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px 36px;
+    min-width: 320px;
+  }
+  .shortcuts-card h2 { margin-bottom: 16px; font-size: 1em; color: var(--azure-light); border: none; padding: 0; }
+  .shortcut-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .shortcut-row:last-child { border: none; }
+  kbd {
+    background: var(--bg-card2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-family: monospace;
+    font-size: 12px;
+    color: var(--text-main);
+  }
+
+  /* ── Scrollbar ── */
+  .slide::-webkit-scrollbar { width: 4px; }
+  .slide::-webkit-scrollbar-track { background: transparent; }
+  .slide::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- Top Bar -->
+  <div id="topbar">
+    <div id="session-title">Introduction to Azure - II</div>
+    <div id="part-label">Part I</div>
+    <div style="flex:1"></div>
+    <div id="timer-box">
+      <span>Session:</span>
+      <span id="timer">00:00</span>
+      <button id="timer-btn" onclick="toggleTimer()">Start</button>
+    </div>
+    <div id="slide-counter">Slide <span id="cur">1</span> / <span id="tot">27</span></div>
+    <button class="nav-btn" onclick="toggleShortcuts()" title="Keyboard shortcuts" style="padding:7px 10px;">⌨️</button>
+  </div>
+
+  <!-- Progress -->
+  <div id="progress-track"><div id="progress-fill"></div></div>
+
+  <!-- Stage -->
+  <div id="stage" id="slides-container"></div>
+
+  <!-- Notes -->
+  <div id="notes-panel">
+    <strong>Instructor Note</strong>
+    <span id="notes-text"></span>
+  </div>
+
+  <!-- Nav -->
+  <div id="nav">
+    <button class="nav-btn" id="btn-prev" onclick="prev()">← Prev</button>
+    <div id="nav-center"></div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <button id="notes-toggle" onclick="toggleNotes()">Notes</button>
+      <button class="nav-btn primary" id="btn-next" onclick="next()">Next →</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- Shortcuts overlay -->
+<div id="shortcuts-overlay" onclick="toggleShortcuts()">
+  <div class="shortcuts-card" onclick="event.stopPropagation()">
+    <h2>⌨️ Keyboard Shortcuts</h2>
+    <div class="shortcut-row"><span>Next slide</span><span><kbd>→</kbd> or <kbd>Space</kbd></span></div>
+    <div class="shortcut-row"><span>Previous slide</span><span><kbd>←</kbd></span></div>
+    <div class="shortcut-row"><span>First slide</span><span><kbd>Home</kbd></span></div>
+    <div class="shortcut-row"><span>Last slide</span><span><kbd>End</kbd></span></div>
+    <div class="shortcut-row"><span>Toggle notes</span><span><kbd>N</kbd></span></div>
+    <div class="shortcut-row"><span>Toggle timer</span><span><kbd>T</kbd></span></div>
+    <div class="shortcut-row"><span>Close this</span><span><kbd>Esc</kbd></span></div>
+    <div style="margin-top:14px;text-align:center;">
+      <button class="nav-btn" onclick="toggleShortcuts()">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+// DATA: Slides
+// ─────────────────────────────────────────────
+const slides = [
+
+  // ── TITLE ──
+  {
+    part: 'Title',
+    notes: '',
+    html: `
+      <div class="slide-part-banner">
+        <div class="part-badge">EPGC Cloud & DevOps — Live Session</div>
+        <h1>Introduction to Azure<br><span style="color:var(--text-muted);font-size:0.7em">Module II</span></h1>
+        <p style="font-size:1.1em;color:var(--text-muted);max-width:600px;text-align:center">
+          ARM Templates · Bicep · NSGs · ASGs · User Defined Routes
+        </p>
+        <div style="display:flex;gap:20px;margin-top:8px;flex-wrap:wrap;justify-content:center">
+          <span style="background:rgba(0,120,212,0.12);border:1px solid var(--azure-blue);border-radius:6px;padding:6px 16px;font-size:13px;color:var(--azure-light)">⏱ 2 hrs 30 mins</span>
+          <span style="background:rgba(63,185,80,0.1);border:1px solid var(--green);border-radius:6px;padding:6px 16px;font-size:13px;color:var(--green)">🛠 Hands-On Labs</span>
+          <span style="background:rgba(188,140,255,0.1);border:1px solid var(--purple);border-radius:6px;padding:6px 16px;font-size:13px;color:var(--purple)">2 Case Studies</span>
+        </div>
+        <p style="color:var(--text-muted);font-size:0.85em;margin-top:20px">Press → or Space to begin</p>
+      </div>`
+  },
+
+  // ── PART I BANNER ──
+  {
+    part: 'Part I',
+    notes: '',
+    html: `
+      <div class="slide-part-banner">
+        <div class="part-badge">Part I</div>
+        <h1>Introduction</h1>
+        <p style="color:var(--text-muted);font-size:1.1em">10 Minutes</p>
+        <div style="display:flex;gap:12px;margin-top:12px">
+          <span style="background:rgba(0,120,212,0.1);border:1px solid var(--border);border-radius:6px;padding:8px 18px;font-size:13px">Welcome &amp; Objectives</span>
+          <span style="background:rgba(0,120,212,0.1);border:1px solid var(--border);border-radius:6px;padding:8px 18px;font-size:13px">Quick Recap</span>
+          <span style="background:rgba(0,120,212,0.1);border:1px solid var(--border);border-radius:6px;padding:8px 18px;font-size:13px">Agenda Overview</span>
+        </div>
+      </div>`
+  },
+
+  // ── SLIDE 1: WELCOME ──
+  {
+    part: 'Part I',
+    notes: 'Introduce yourself. Ask learners to open Azure Portal and Cloud Shell before proceeding.',
+    html: `
+      <h2><span class="slide-num">01</span>Welcome</h2>
+      <p style="font-size:1.05em;color:var(--azure-light);margin-bottom:18px">Session: <strong>Introduction to Azure - II</strong></p>
+      <div class="comparison">
+        <div class="cmp-card old">
+          <div class="cmp-title">❌ What you did before</div>
+          <ul>
+            <li>Manual resource creation in Portal</li>
+            <li>Static IP-based security rules</li>
+            <li>Single-region deployments</li>
+            <li>No repeatability or audit trail</li>
+          </ul>
+        </div>
+        <div class="cmp-card new">
+          <div class="cmp-title">✅ What you'll do today</div>
+          <ul>
+            <li>Automated infrastructure with ARM &amp; Bicep</li>
+            <li>Dynamic security with NSGs + ASGs</li>
+            <li>Multi-region, highly available setup</li>
+            <li>Full CLI-driven, auditable deployments</li>
+          </ul>
+        </div>
+      </div>
+      <blockquote style="margin-top:16px">"Code your infrastructure like you code your application — version it, test it, deploy it consistently."</blockquote>`
+  },
+
+  // ── SLIDE 2: OBJECTIVE ──
+  {
+    part: 'Part I',
+    notes: 'Read the objective aloud. It sets expectations clearly.',
+    html: `
+      <h2><span class="slide-num">02</span>Session Objective</h2>
+      <blockquote>"By the end of this session, you will be able to automate Azure infrastructure using ARM templates and Bicep, and enforce enterprise-grade network security using NSGs, ASGs, and UDRs."</blockquote>
+      <h3>What we'll build today</h3>
+      <div class="two-col" style="margin-top:10px">
+        <div class="col-card" style="border-color:var(--azure-blue)">
+          <div style="font-size:1.6em;margin-bottom:8px">🏗️</div>
+          <strong style="display:block;margin-bottom:6px">Case Study 1 — SecureInsure</strong>
+          <p style="font-size:0.85em;color:var(--text-muted)">Multi-region infrastructure using parameterized ARM templates, converted to Bicep and deployed via CLI</p>
+        </div>
+        <div class="col-card" style="border-color:var(--orange)">
+          <div style="font-size:1.6em;margin-bottom:8px">🔒</div>
+          <strong style="display:block;margin-bottom:6px">Case Study 2 — FinTrust Bank</strong>
+          <p style="font-size:0.85em;color:var(--text-muted)">3-tier secure network with NSGs, ASGs for dynamic grouping, and UDRs to force traffic through Azure Firewall</p>
+        </div>
+      </div>`
+  },
+
+  // ── SLIDE 3: RECAP ──
+  {
+    part: 'Part I',
+    notes: 'Spend 2 minutes asking learners what they remember from the previous session. Encourage participation.',
+    html: `
+      <h2><span class="slide-num">03</span>Quick Recap</h2>
+      <p style="color:var(--text-muted);margin-bottom:14px">What did we cover in the previous session?</p>
+      <table>
+        <thead><tr><th>Previous Session</th><th>Today's Session</th></tr></thead>
+        <tbody>
+          <tr><td>Azure basics, VMs, Storage</td><td><strong>ARM Templates + Bicep (IaC)</strong></td></tr>
+          <tr><td>Azure Portal — manual clicks</td><td><strong>CLI-driven automation</strong></td></tr>
+          <tr><td>Single VNet, basic setup</td><td><strong>Multi-region VNets + peering</strong></td></tr>
+          <tr><td>Basic NSG rules by IP</td><td><strong>NSGs + ASGs + UDRs</strong></td></tr>
+        </tbody>
+      </table>
+      <div style="background:rgba(0,120,212,0.06);border:1px solid var(--azure-blue);border-radius:8px;padding:14px;margin-top:14px">
+        <strong style="color:var(--azure-light)">💬 Quick poll:</strong>
+        <p style="font-size:0.9em;margin-top:6px;color:var(--text-muted)">Who has deployed a VM via CLI before? · Who has written any JSON template? · Who has used Cloud Shell?</p>
+      </div>`
+  },
+
+  // ── SLIDE 4: AGENDA ──
+  {
+    part: 'Part I',
+    notes: 'Walk through the agenda. Point out that hands-on is 100 of 120 minutes — this is a doing session, not a lecture.',
+    html: `
+      <h2><span class="slide-num">04</span>Session Agenda</h2>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
+        <div class="agenda-row">
+          <div class="agenda-time">10 min</div>
+          <div class="agenda-bar p1"></div>
+          <div class="agenda-content"><div class="label" style="color:var(--azure-light)">Part I — Introduction</div><div class="sub">Welcome · Objectives · Recap</div></div>
+        </div>
+        <div class="agenda-row">
+          <div class="agenda-time">50 min</div>
+          <div class="agenda-bar p2a"></div>
+          <div class="agenda-content"><div class="label" style="color:var(--purple)">Part II — Case Study 1: SecureInsure</div><div class="sub">ARM Templates · Bicep · Multi-region deploy · 3 hands-on labs</div></div>
+        </div>
+        <div class="agenda-row">
+          <div class="agenda-time">50 min</div>
+          <div class="agenda-bar p2b"></div>
+          <div class="agenda-content"><div class="label" style="color:var(--orange)">Part II — Case Study 2: FinTrust Bank</div><div class="sub">3-tier network · NSGs · ASGs · UDRs · Security validation</div></div>
+        </div>
+        <div class="agenda-row">
+          <div class="agenda-time">10 min</div>
+          <div class="agenda-bar p3"></div>
+          <div class="agenda-content"><div class="label" style="color:var(--green)">Part III — Summary &amp; Q&amp;A</div><div class="sub">Key takeaways · Cleanup · What's next</div></div>
+        </div>
+      </div>
+      <p style="font-size:0.82em;color:var(--text-muted);margin-top:12px">⚡ <strong style="color:var(--text-main)">100 of 120 minutes is hands-on.</strong> Keep your Cloud Shell open throughout.</p>`
+  },
+
+  // ── CS1 BANNER ──
+  {
+    part: 'CS 1',
+    notes: '',
+    html: `
+      <div class="slide-part-banner">
+        <div class="part-badge">Case Study 1 · 50 Minutes</div>
+        <h1>Enterprise Infrastructure<br>with ARM Templates &amp; Bicep</h1>
+        <p style="color:var(--text-muted);font-size:1em;max-width:560px;text-align:center">
+          SecureInsure — Multinational Insurance Firm
+        </p>
+        <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;justify-content:center">
+          <span style="background:rgba(188,140,255,0.1);border:1px solid var(--purple);border-radius:6px;padding:6px 14px;font-size:12px;color:var(--purple)">ARM Templates</span>
+          <span style="background:rgba(188,140,255,0.1);border:1px solid var(--purple);border-radius:6px;padding:6px 14px;font-size:12px;color:var(--purple)">Bicep DSL</span>
+          <span style="background:rgba(63,185,80,0.1);border:1px solid var(--green);border-radius:6px;padding:6px 14px;font-size:12px;color:var(--green)">3 Hands-On Labs</span>
+          <span style="background:rgba(0,120,212,0.1);border:1px solid var(--azure-blue);border-radius:6px;padding:6px 14px;font-size:12px;color:var(--azure-light)">Multi-Region Deploy</span>
+        </div>
+      </div>`
+  },
+
+  // ── SLIDE 5: THE PROBLEM ──
+  {
+    part: 'CS 1',
+    notes: 'Ask: "How many of you have manually created the same VM in Dev and Prod and had it break in Prod?" That\'s the problem we\'re solving.',
+    html: `
+      <h2><span class="slide-num">05</span>The Problem: Manual Deployments Don't Scale</h2>
+      <div class="two-col">
+        <div>
+          <h3>Pain Points</h3>
+          <ul>
+            <li>Inconsistent environments <strong>(dev ≠ prod)</strong></li>
+            <li>Human errors during repetitive setup</li>
+            <li>No audit trail — "Who created this VM?"</li>
+            <li>Cannot replicate across regions easily</li>
+            <li>Takes hours instead of minutes</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Solution: Infrastructure as Code</h3>
+          <ul>
+            <li>Define infrastructure <strong>in code</strong></li>
+            <li>Version it in Git like application code</li>
+            <li>Deploy identically every time — <strong>idempotent</strong></li>
+            <li>Rollback to any previous state</li>
+            <li>Full audit trail via deployment history</li>
+          </ul>
+        </div>
+      </div>
+      <blockquote>"Define your infrastructure in code, version it like software, deploy it consistently every time."</blockquote>`
+  },
+
+  // ── SLIDE 6: SECUREINSURE ──
+  {
+    part: 'CS 1',
+    notes: 'Take 2 minutes to explain the business scenario. Help learners connect the technical task to the real need.',
+    html: `
+      <h2><span class="slide-num">06</span>Case Study 1: SecureInsure</h2>
+      <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+        <div style="background:rgba(0,120,212,0.08);border:1px solid var(--azure-blue);border-radius:8px;padding:12px 18px;flex:1;min-width:200px">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--azure-blue);margin-bottom:4px">Company</div>
+          <div style="font-weight:600">SecureInsure</div>
+          <div style="font-size:0.82em;color:var(--text-muted)">Multinational Insurance Firm</div>
+        </div>
+        <div style="background:rgba(248,81,73,0.08);border:1px solid var(--red);border-radius:8px;padding:12px 18px;flex:1;min-width:200px">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--red);margin-bottom:4px">Challenge</div>
+          <div style="font-weight:600">Manual = Inconsistent</div>
+          <div style="font-size:0.82em;color:var(--text-muted)">Dev, staging, prod drift over time</div>
+        </div>
+        <div style="background:rgba(63,185,80,0.08);border:1px solid var(--green);border-radius:8px;padding:12px 18px;flex:1;min-width:200px">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--green);margin-bottom:4px">Goal</div>
+          <div style="font-weight:600">IaC-driven Deployment</div>
+          <div style="font-size:0.82em;color:var(--text-muted)">Repeatable, auditable, multi-region</div>
+        </div>
+      </div>
+      <h3>Our Tasks</h3>
+      <ol>
+        <li>Build <strong>modular, parameterized ARM templates</strong> — one template, multiple environments</li>
+        <li>Convert ARM → <strong>Bicep</strong> for cleaner syntax and better DX</li>
+        <li>Deploy to <strong>East US (primary) + East US 2 (DR)</strong> using Azure CLI</li>
+      </ol>`
+  },
+
+  // ── SLIDE 7: ARM TEMPLATE ──
+  {
+    part: 'CS 1',
+    notes: 'Open case-study-1/arm/main.json alongside this slide. Show the 5 sections live.',
+    html: `
+      <h2><span class="slide-num">07</span>What is an ARM Template?</h2>
+      <p><strong>ARM = Azure Resource Manager.</strong> ARM templates are JSON files that declare what Azure infrastructure to create.</p>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang json">JSON — ARM Template Structure</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <div class="code-body"><span class="t-str">"$schema"</span>:  <span class="t-cmt">← tells Azure this is an ARM template</span>
+<span class="t-str">"parameters"</span>: <span class="t-str">{ }</span>  <span class="t-cmt">← inputs: env-specific values (vmSize, location…)</span>
+<span class="t-str">"variables"</span>:  <span class="t-str">{ }</span>  <span class="t-cmt">← computed values, avoid repetition</span>
+<span class="t-str">"resources"</span>:  <span class="t-str">[ ]</span>  <span class="t-cmt">← the actual Azure resources to create</span>
+<span class="t-str">"outputs"</span>:    <span class="t-str">{ }</span>  <span class="t-cmt">← return values (IPs, resource IDs…)</span></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+        <div style="background:var(--bg-card2);border:1px solid var(--border);border-radius:6px;padding:8px 14px;flex:1;min-width:130px">
+          <div style="color:var(--green);font-weight:700;font-size:0.8em;margin-bottom:3px">IDEMPOTENT</div>
+          <div style="font-size:0.8em;color:var(--text-muted)">Run 10x → same result</div>
+        </div>
+        <div style="background:var(--bg-card2);border:1px solid var(--border);border-radius:6px;padding:8px 14px;flex:1;min-width:130px">
+          <div style="color:var(--azure-light);font-weight:700;font-size:0.8em;margin-bottom:3px">DECLARATIVE</div>
+          <div style="font-size:0.8em;color:var(--text-muted)">Say WHAT, not HOW</div>
+        </div>
+        <div style="background:var(--bg-card2);border:1px solid var(--border);border-radius:6px;padding:8px 14px;flex:1;min-width:130px">
+          <div style="color:var(--purple);font-weight:700;font-size:0.8em;margin-bottom:3px">DEPENDENCIES</div>
+          <div style="font-size:0.8em;color:var(--text-muted)">dependsOn → ordered deploy</div>
+        </div>
+        <div style="background:var(--bg-card2);border:1px solid var(--border);border-radius:6px;padding:8px 14px;flex:1;min-width:130px">
+          <div style="color:var(--orange);font-weight:700;font-size:0.8em;margin-bottom:3px">ROLLBACK</div>
+          <div style="font-size:0.8em;color:var(--text-muted)">Fails atomically</div>
+        </div>
+      </div>`
+  },
+
+  // ── SLIDE 8: ARCHITECTURE ──
+  {
+    part: 'CS 1',
+    notes: 'Draw attention to different VNet address spaces per region — required for VNet peering.',
+    html: `
+      <h2><span class="slide-num">08</span>Multi-Region Architecture</h2>
+      <div style="display:grid;grid-template-columns:1fr 60px 1fr;gap:0;margin:12px 0;align-items:center">
+        <div style="background:rgba(0,120,212,0.08);border:1px solid var(--azure-blue);border-radius:8px;padding:14px">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--azure-blue);margin-bottom:8px">East US · Primary</div>
+          <div style="background:var(--bg-card2);border:1px solid var(--border);border-radius:6px;padding:10px;margin-bottom:6px">
+            <div style="font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:4px">rg-secureinsure-dev</div>
+            <div style="background:rgba(0,120,212,0.1);border:1px solid rgba(0,120,212,0.3);border-radius:4px;padding:8px;font-size:11px">
+              <div style="color:var(--azure-light);font-weight:600">VNet: 10.1.0.0/16</div>
+              <div style="color:var(--text-muted);margin-top:4px">├ snet-web: 10.1.1.0/24</div>
+              <div style="color:var(--text-muted)">└ snet-app: 10.1.2.0/24</div>
+            </div>
+            <div style="margin-top:6px;font-size:11px;color:var(--text-muted)">NSG-web · NSG-app · VM</div>
+          </div>
+        </div>
+        <div style="text-align:center;font-size:11px;color:var(--text-muted)">
+          <div style="color:var(--azure-light);font-size:16px">⇄</div>
+          <div>VNet<br>Peering</div>
+        </div>
+        <div style="background:rgba(63,185,80,0.06);border:1px solid var(--green);border-radius:8px;padding:14px">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--green);margin-bottom:8px">East US 2 · DR (Secondary Region)</div>
+          <div style="background:var(--bg-card2);border:1px solid var(--border);border-radius:6px;padding:10px;margin-bottom:6px">
+            <div style="font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:4px">rg-secureinsure-dr</div>
+            <div style="background:rgba(63,185,80,0.06);border:1px solid rgba(63,185,80,0.3);border-radius:4px;padding:8px;font-size:11px">
+              <div style="color:var(--green);font-weight:600">VNet: 10.2.0.0/16</div>
+              <div style="color:var(--text-muted);margin-top:4px">├ snet-web: 10.2.1.0/24</div>
+              <div style="color:var(--text-muted)">└ snet-app: 10.2.2.0/24</div>
+            </div>
+            <div style="margin-top:6px;font-size:11px;color:var(--text-muted)">NSG-web · NSG-app · VM (standby)</div>
+          </div>
+        </div>
+      </div>
+      <p style="font-size:0.82em;color:var(--text-muted)">⚠️ Different VNet address spaces per region are required for VNet peering — no overlapping CIDRs allowed.</p>`
+  },
+
+  // ── SLIDE 9: ARM SECTIONS ──
+  {
+    part: 'CS 1',
+    notes: 'Open main.json and show each section live. Ask learners to find the vmSize parameter.',
+    html: `
+      <h2><span class="slide-num">09</span>ARM Template: Key Sections</h2>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div>
+          <h3>Parameters — what changes per environment</h3>
+          <div class="code-block">
+            <div class="code-header"><span class="code-lang json">JSON</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+            <div class="code-body"><span class="t-str">"vmSize"</span>: {
+  <span class="t-str">"type"</span>: <span class="t-str">"string"</span>,
+  <span class="t-str">"defaultValue"</span>: <span class="t-str">"Standard_B2ms"</span>,
+  <span class="t-str">"allowedValues"</span>: [<span class="t-str">"Standard_B1ms"</span>, <span class="t-str">"Standard_B2ms"</span>, <span class="t-str">"Standard_B4ms"</span>, <span class="t-str">"Standard_D2_v3"</span>]
+}</div>
+          </div>
+        </div>
+        <div>
+          <h3>Variables — computed values, no repetition</h3>
+          <div class="code-block">
+            <div class="code-header"><span class="code-lang json">JSON</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+            <div class="code-body"><span class="t-str">"vnetName"</span>: <span class="t-str">"[concat(parameters('prefix'), '-vnet-', parameters('environment'))]"</span></div>
+          </div>
+        </div>
+        <div>
+          <h3>DependsOn — deploy in correct order</h3>
+          <div class="code-block">
+            <div class="code-header"><span class="code-lang json">JSON</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+            <div class="code-body"><span class="t-str">"dependsOn"</span>: [
+  <span class="t-str">"[resourceId('Microsoft.Network/virtualNetworks', variables('vnetName'))]"</span>
+]</div>
+          </div>
+        </div>
+      </div>`
+  },
+
+  // ── SLIDE 10: BICEP ──
+  {
+    part: 'CS 1',
+    notes: 'Key point: Bicep compiles to ARM. It is not a separate tool — it IS ARM, just with better syntax.',
+    html: `
+      <h2><span class="slide-num">10</span>What is Azure Bicep?</h2>
+      <p><strong>Bicep = ARM Templates with a human-friendly syntax.</strong> It compiles to ARM JSON — same engine, better experience.</p>
+      <table style="margin-top:12px">
+        <thead><tr><th>Feature</th><th>ARM Template</th><th>Bicep</th></tr></thead>
+        <tbody>
+          <tr><td>Format</td><td>JSON (verbose)</td><td>DSL — Domain Specific Language</td></tr>
+          <tr><td>Lines of code</td><td>~250 lines</td><td><strong style="color:var(--green)">~150 lines (-40%)</strong></td></tr>
+          <tr><td>VS Code IntelliSense</td><td>Limited</td><td><strong style="color:var(--green)">Excellent</strong></td></tr>
+          <tr><td>Dependency resolution</td><td>Manual <code>dependsOn</code></td><td><strong style="color:var(--green)">Automatic</strong></td></tr>
+          <tr><td>Loops</td><td>Complex <code>copy</code> syntax</td><td><strong style="color:var(--green)">Simple <code>for</code> loops</strong></td></tr>
+          <tr><td>Modules</td><td>Linked templates (complex)</td><td><strong style="color:var(--green)"><code>module</code> keyword</strong></td></tr>
+        </tbody>
+      </table>
+      <div style="background:rgba(63,185,80,0.06);border:1px solid var(--green);border-radius:6px;padding:10px 14px;margin-top:10px;font-size:0.85em">
+        ✅ Bicep is <strong>production-ready</strong> since 2021. Microsoft recommends it over raw ARM for new projects.
+      </div>`
+  },
+
+  // ── SLIDE 11: SIDE BY SIDE ──
+  {
+    part: 'CS 1',
+    notes: 'Highlight: no square bracket expressions, no quotes around property names, automatic dependsOn.',
+    html: `
+      <h2><span class="slide-num">11</span>ARM vs Bicep — Side by Side</h2>
+      <div class="two-col">
+        <div>
+          <h3>ARM Template (JSON)</h3>
+          <div class="code-block">
+            <div class="code-header"><span class="code-lang json">JSON — 12 lines</span></div>
+            <div class="code-body" style="font-size:0.78em">{
+  <span class="t-str">"type"</span>: <span class="t-str">"Microsoft.Network/virtualNetworks"</span>,
+  <span class="t-str">"apiVersion"</span>: <span class="t-str">"2023-04-01"</span>,
+  <span class="t-str">"name"</span>: <span class="t-str">"[variables('vnetName')]"</span>,
+  <span class="t-str">"location"</span>: <span class="t-str">"[parameters('location')]"</span>,
+  <span class="t-str">"properties"</span>: {
+    <span class="t-str">"addressSpace"</span>: {
+      <span class="t-str">"addressPrefixes"</span>: [
+        <span class="t-str">"[parameters('vnetAddressPrefix')]"</span>
+      ]
+    }
+  }
+}</div>
+          </div>
+        </div>
+        <div>
+          <h3>Bicep (DSL)</h3>
+          <div class="code-block">
+            <div class="code-header"><span class="code-lang bicep">BICEP — 8 lines</span></div>
+            <div class="code-body" style="font-size:0.78em"><span class="t-kw">resource</span> <span class="t-fn">vnet</span> <span class="t-str">'Microsoft.Network/virtualNetworks@2023-04-01'</span> = {
+  <span class="t-key">name</span>: vnetName
+  <span class="t-key">location</span>: location
+  <span class="t-key">properties</span>: {
+    <span class="t-key">addressSpace</span>: {
+      <span class="t-key">addressPrefixes</span>: [vnetAddressPrefix]
+    }
+  }
+}</div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:8px;font-size:0.82em;flex-wrap:wrap">
+        <span style="background:rgba(63,185,80,0.08);border:1px solid rgba(63,185,80,0.3);padding:4px 10px;border-radius:4px;color:var(--green)">✓ No bracket expressions</span>
+        <span style="background:rgba(63,185,80,0.08);border:1px solid rgba(63,185,80,0.3);padding:4px 10px;border-radius:4px;color:var(--green)">✓ No quotes around property names</span>
+        <span style="background:rgba(63,185,80,0.08);border:1px solid rgba(63,185,80,0.3);padding:4px 10px;border-radius:4px;color:var(--green)">✓ dependsOn automatic</span>
+      </div>`
+  },
+
+  // ── SLIDE 12: HANDS-ON 1 ──
+  {
+    part: 'CS 1',
+    notes: 'Walk through main.json line by line BEFORE running the deploy. Give learners 2 minutes to open Cloud Shell.',
+    html: `
+      <div class="hands-on-slide">
+        <div class="hands-on-badge">🛠 Hands-On 1 · 20 mins · ARM Deploy</div>
+        <h2><span class="slide-num">12</span>Deploy with ARM Template</h2>
+        <h3>Step 1 — Login</h3>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang bash">BASH</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <div class="code-body"><span class="t-fn">az</span> login   <span class="t-cmt"># skip if using Cloud Shell</span></div>
+        </div>
+        <h3>Step 2 — Create Resource Group</h3>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang bash">BASH</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <div class="code-body"><span class="t-fn">az</span> group create <span class="t-flag">--name</span> rg-secureinsure-dev <span class="t-flag">--location</span> eastus</div>
+        </div>
+        <h3>Step 3 — Deploy ARM Template</h3>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang bash">BASH</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <div class="code-body"><span class="t-fn">az</span> deployment group create \
+  <span class="t-flag">--resource-group</span> rg-secureinsure-dev \
+  <span class="t-flag">--template-file</span> case-study-1/arm/main.json \
+  <span class="t-flag">--parameters</span> @case-study-1/arm/params.dev.json</div>
+        </div>
+        <h3>Step 4 — Verify</h3>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang bash">BASH</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <div class="code-body"><span class="t-fn">az</span> resource list <span class="t-flag">--resource-group</span> rg-secureinsure-dev <span class="t-flag">--output</span> table</div>
+        </div>
+      </div>`
+  },
+
+  // ── SLIDE 13: HANDS-ON 2 ──
+  {
+    part: 'CS 1',
+    notes: 'Show the line count comparison live. The reduction from ARM to Bicep is always impressive to learners.',
+    html: `
+      <div class="hands-on-slide">
+        <div class="hands-on-badge">🛠 Hands-On 2 · 15 mins · Bicep</div>
+        <h2><span class="slide-num">13</span>Convert ARM → Bicep</h2>
+        <h3>Option A — Auto decompile</h3>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang bash">BASH</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <div class="code-body"><span class="t-fn">az</span> bicep decompile <span class="t-flag">--file</span> case-study-1/arm/main.json</div>
+        </div>
+        <h3>Option B — Use pre-written Bicep</h3>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang bash">BASH</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <div class="code-body">cat case-study-1/bicep/main.bicep
+
+<span class="t-cmt"># Compare line counts — see the reduction!</span>
+wc -l case-study-1/arm/main.json
+wc -l case-study-1/bicep/main.bicep</div>
+        </div>
+        <h3>Deploy Bicep directly</h3>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang bash">BASH</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <div class="code-body"><span class="t-fn">az</span> group create <span class="t-flag">--name</span> rg-secureinsure-staging <span class="t-flag">--location</span> eastus
+
+<span class="t-fn">az</span> deployment group create \
+  <span class="t-flag">--resource-group</span> rg-secureinsure-staging \
+  <span class="t-flag">--template-file</span> case-study-1/bicep/main.bicep \
+  <span class="t-flag">--parameters</span> environment=staging location=eastus</div>
+        </div>
+      </div>`
+  },
+
+  // ── SLIDE 14: HANDS-ON 3 ──
+  {
+    part: 'CS 1',
+    notes: 'Key point: SAME template, DIFFERENT location and vnetAddressPrefix. This is the power of parameterization.',
+    html: `
+      <div class="hands-on-slide">
+        <div class="hands-on-badge">🛠 Hands-On 3 · 10 mins · Multi-Region</div>
+        <h2><span class="slide-num">14</span>Multi-Region Deployment (DR)</h2>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang bash">BASH — same template, different region</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <div class="code-body"><span class="t-cmt"># Create DR resource group in East US 2 (secondary allowed region)</span>
+<span class="t-fn">az</span> group create <span class="t-flag">--name</span> rg-secureinsure-dr <span class="t-flag">--location</span> eastus2
+
+<span class="t-cmt"># Deploy — note: different location & different VNet CIDR</span>
+<span class="t-fn">az</span> deployment group create \
+  <span class="t-flag">--resource-group</span> rg-secureinsure-dr \
+  <span class="t-flag">--template-file</span> case-study-1/bicep/main.bicep \
+  <span class="t-flag">--parameters</span> environment=prod location=eastus2 vnetAddressPrefix=10.2.0.0/16</div>
+        </div>
+        <h3>Verify both regions</h3>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang bash">BASH</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <div class="code-body"><span class="t-fn">az</span> group list \
+  <span class="t-flag">--query</span> <span class="t-str">"[?starts_with(name,'rg-secureinsure')]"</span> \
+  <span class="t-flag">--output</span> table</div>
+        </div>
+        <div style="background:rgba(63,185,80,0.06);border:1px solid var(--green);border-radius:6px;padding:10px 14px;margin-top:10px;font-size:0.85em">
+          <strong style="color:var(--green)">✅ Key insight:</strong> The same Bicep file deployed to two regions with different parameters. This is parameterized IaC in action.
+        </div>
+      </div>`
+  },
+
+  // ── CS2 BANNER ──
+  {
+    part: 'CS 2',
+    notes: '',
+    html: `
+      <div class="slide-part-banner">
+        <div class="part-badge">Case Study 2 · 50 Minutes</div>
+        <h1>Securing a Multi-Tier App<br>with NSGs, ASGs &amp; UDRs</h1>
+        <p style="color:var(--text-muted);font-size:1em;max-width:560px;text-align:center">
+          FinTrust Bank — Core Banking Application Migration
+        </p>
+        <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;justify-content:center">
+          <span style="background:rgba(0,120,212,0.1);border:1px solid var(--azure-blue);border-radius:6px;padding:6px 14px;font-size:12px;color:var(--azure-light)">Network Security Groups</span>
+          <span style="background:rgba(188,140,255,0.1);border:1px solid var(--purple);border-radius:6px;padding:6px 14px;font-size:12px;color:var(--purple)">Application Security Groups</span>
+          <span style="background:rgba(248,81,73,0.1);border:1px solid var(--red);border-radius:6px;padding:6px 14px;font-size:12px;color:var(--red)">User Defined Routes</span>
+        </div>
+      </div>`
+  },
+
+  // ── SLIDE 15: FINTRUST ──
+  {
+    part: 'CS 2',
+    notes: 'Emphasize PCI DSS compliance requirement — this is not optional security, it is a regulatory mandate.',
+    html: `
+      <h2><span class="slide-num">15</span>Case Study 2: FinTrust Bank</h2>
+      <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+        <div style="background:rgba(248,81,73,0.08);border:1px solid var(--red);border-radius:8px;padding:10px 16px;flex:1;min-width:180px">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--red);margin-bottom:4px">Compliance</div>
+          <div style="font-weight:600;font-size:0.9em">PCI DSS · SOX</div>
+          <div style="font-size:0.78em;color:var(--text-muted)">Card data security standards</div>
+        </div>
+        <div style="background:rgba(210,153,34,0.08);border:1px solid var(--yellow);border-radius:8px;padding:10px 16px;flex:1;min-width:180px">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--yellow);margin-bottom:4px">Risk</div>
+          <div style="font-weight:600;font-size:0.9em">Core Banking Data</div>
+          <div style="font-size:0.78em;color:var(--text-muted)">Breach = regulatory fine + reputation loss</div>
+        </div>
+        <div style="background:rgba(63,185,80,0.08);border:1px solid var(--green);border-radius:8px;padding:10px 16px;flex:1;min-width:180px">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--green);margin-bottom:4px">Solution</div>
+          <div style="font-weight:600;font-size:0.9em">Zero-Trust Segmentation</div>
+          <div style="font-size:0.78em;color:var(--text-muted)">No implicit trust between tiers</div>
+        </div>
+      </div>
+      <h3>Our Tasks</h3>
+      <ol>
+        <li>Design <strong>3-tier network</strong> — Web / App / DB subnets with strict isolation</li>
+        <li>Apply <strong>NSGs</strong> with explicit allow/deny rules per tier</li>
+        <li>Implement <strong>ASGs</strong> — group VMs by role, not by IP</li>
+        <li>Configure <strong>UDRs</strong> to route web-tier traffic through Azure Firewall</li>
+      </ol>`
+  },
+
+  // ── SLIDE 16: 3-TIER ARCH ──
+  {
+    part: 'CS 2',
+    notes: 'Point out the flow: Internet → Web → App → DB. No tier can skip another. This is enforced by NSG rules.',
+    html: `
+      <h2><span class="slide-num">16</span>3-Tier Architecture Design</h2>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:0.82em;color:var(--text-muted)">
+        <span style="background:rgba(0,120,212,0.1);border:1px solid var(--azure-blue);padding:3px 8px;border-radius:4px;color:var(--azure-light)">Internet</span>
+        <span>→</span>
+        <span style="background:rgba(0,120,212,0.1);border:1px solid var(--azure-blue);padding:3px 8px;border-radius:4px;color:var(--azure-light)">App Gateway</span>
+        <span>→</span>
+        <span style="background:rgba(0,120,212,0.1);border:1px solid var(--azure-blue);padding:3px 8px;border-radius:4px;color:var(--azure-light)">VNet 10.0.0.0/16</span>
+      </div>
+      <div class="tier-diagram">
+        <div class="tier-box web">
+          <div class="tier-title">Web Tier — snet-web · 10.0.1.0/24</div>
+          <div class="tier-meta">VM: web-server-1, web-server-2</div>
+          <div class="tier-tags">
+            <span class="tag nsg">NSG: Allow :80/:443 from Internet</span>
+            <span class="tag asg">ASG: asg-web-servers</span>
+            <span class="tag udr">UDR → Firewall</span>
+          </div>
+        </div>
+        <div class="tier-arrow">↓ Port 8080 only (ASG rule)</div>
+        <div class="tier-box app">
+          <div class="tier-title">App Tier — snet-app · 10.0.2.0/24</div>
+          <div class="tier-meta">VM: app-server-1, app-server-2</div>
+          <div class="tier-tags">
+            <span class="tag nsg">NSG: Allow :8080 from asg-web-servers</span>
+            <span class="tag asg">ASG: asg-app-servers</span>
+          </div>
+        </div>
+        <div class="tier-arrow">↓ Port 1433 only (ASG rule)</div>
+        <div class="tier-box db">
+          <div class="tier-title">DB Tier — snet-db · 10.0.3.0/24</div>
+          <div class="tier-meta">VM: db-server-1</div>
+          <div class="tier-tags">
+            <span class="tag nsg">NSG: Allow :1433 from asg-app-servers</span>
+            <span class="tag asg">ASG: asg-db-servers</span>
+          </div>
+        </div>
+        <div class="tier-arrow">↓</div>
+        <div class="tier-box fw">
+          <div class="tier-title">AzureFirewallSubnet · 10.0.4.0/26</div>
+          <div class="tier-meta">Azure Firewall IP: 10.0.4.4 — all web traffic inspected here</div>
+        </div>
+      </div>`
+  },
+
+  // ── SLIDE 17: NSG vs ASG ──
+  {
+    part: 'CS 2',
+    notes: 'Use the "address book" analogy: NSG = security guard checking IDs, ASG = access badge by department.',
+    html: `
+      <h2><span class="slide-num">17</span>NSG vs ASG — What's the Difference?</h2>
+      <table>
+        <thead><tr><th>Feature</th><th>NSG</th><th>ASG</th></tr></thead>
+        <tbody>
+          <tr><td>Stands for</td><td>Network Security Group</td><td>Application Security Group</td></tr>
+          <tr><td>Applied to</td><td>Subnet or Network Interface</td><td>VMs (grouped logically)</td></tr>
+          <tr><td>Rules based on</td><td>IP address / CIDR range</td><td><strong>ASG name</strong></td></tr>
+          <tr><td>When VM IP changes</td><td><strong style="color:var(--red)">Must update all rules</strong></td><td><strong style="color:var(--green)">No change needed</strong></td></tr>
+          <tr><td>Use case</td><td>Subnet-level traffic filter</td><td>VM-group-level dynamic filter</td></tr>
+        </tbody>
+      </table>
+      <div style="margin-top:14px">
+        <h3>Together they're powerful</h3>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">NSG RULE (with ASG)</span></div>
+          <div class="code-body">Allow TCP <span class="t-num">8080</span>
+  FROM  <span class="t-fn">ASG:asg-web-servers</span>
+  TO    <span class="t-fn">ASG:asg-app-servers</span></div>
+        </div>
+        <p style="font-size:0.85em;color:var(--text-muted)">→ Add or remove VMs from an ASG — the rule never needs updating. Scale freely.</p>
+      </div>`
+  },
+
+  // ── SLIDE 18: NSG DEEP DIVE ──
+  {
+    part: 'CS 2',
+    notes: 'Stress: lower priority number = higher priority. The Deny-All at 4096 is the safety net.',
+    html: `
+      <h2><span class="slide-num">18</span>NSG Rules Deep Dive</h2>
+      <p style="margin-bottom:10px"><strong style="color:var(--azure-light)">Rule Priority:</strong> <span style="color:var(--text-muted)">Lower number = processed first (100 → 4096). First matching rule wins.</span></p>
+      <h3>Web Subnet NSG — nsg-web</h3>
+      <table class="nsg-table">
+        <thead><tr><th>Priority</th><th>Name</th><th>Port</th><th>Source</th><th>Action</th></tr></thead>
+        <tbody>
+          <tr><td class="pri-hi">100</td><td>Allow-HTTP</td><td>80</td><td>Internet</td><td class="allow">Allow</td></tr>
+          <tr><td class="pri-hi">110</td><td>Allow-HTTPS</td><td>443</td><td>Internet</td><td class="allow">Allow</td></tr>
+          <tr><td>200</td><td>Allow-LB-Probe</td><td>*</td><td>AzureLoadBalancer</td><td class="allow">Allow</td></tr>
+          <tr><td class="pri-lo">4096</td><td>Deny-All-Inbound</td><td>*</td><td>*</td><td class="deny">Deny</td></tr>
+        </tbody>
+      </table>
+      <h3 style="margin-top:12px">DB Subnet NSG — nsg-db</h3>
+      <table class="nsg-table">
+        <thead><tr><th>Priority</th><th>Name</th><th>Port</th><th>Source</th><th>Action</th></tr></thead>
+        <tbody>
+          <tr><td class="pri-hi">100</td><td>Allow-SQL-From-App</td><td>1433</td><td>ASG:asg-app-servers</td><td class="allow">Allow</td></tr>
+          <tr><td>200</td><td>Deny-Internet</td><td>*</td><td>Internet</td><td class="deny">Deny</td></tr>
+          <tr><td class="pri-lo">4096</td><td>Deny-All-Inbound</td><td>*</td><td>*</td><td class="deny">Deny</td></tr>
+        </tbody>
+      </table>`
+  },
+
+  // ── SLIDE 19: UDR ──
+  {
+    part: 'CS 2',
+    notes: 'Analogy: UDR is like a GPS reroute. Default Azure routing is a direct road. UDR says "all traffic must go through the toll booth (Firewall) first."',
+    html: `
+      <h2><span class="slide-num">19</span>User Defined Routes (UDRs)</h2>
+      <div class="two-col" style="margin-bottom:12px">
+        <div class="col-card" style="border-color:var(--red)">
+          <h3 style="color:var(--red)!important">Default Azure Routing</h3>
+          <p style="font-size:0.85em">Traffic flows directly between subnets with no inspection.</p>
+          <div style="font-family:monospace;font-size:0.8em;margin-top:8px;color:var(--text-muted)">
+            Web VM → App VM<br>
+            <span style="color:var(--red)">(no Firewall = no inspection)</span>
+          </div>
+        </div>
+        <div class="col-card" style="border-color:var(--green)">
+          <h3 style="color:var(--green)!important">With UDR</h3>
+          <p style="font-size:0.85em">We override the route: all traffic goes through Firewall first.</p>
+          <div style="font-family:monospace;font-size:0.8em;margin-top:8px;color:var(--text-muted)">
+            Web VM → <span style="color:var(--green)">Firewall</span> → App VM<br>
+            <span style="color:var(--green)">(inspected, logged, filtered)</span>
+          </div>
+        </div>
+      </div>
+      <h3>Route Table: rt-web-tier</h3>
+      <table class="route-table">
+        <thead><tr><th>Destination</th><th>Next Hop Type</th><th>Next Hop IP</th><th>Effect</th></tr></thead>
+        <tbody>
+          <tr><td class="dest">0.0.0.0/0</td><td class="hop">VirtualAppliance</td><td class="ip">10.0.4.4</td><td style="font-size:0.8em;color:var(--text-muted)">All internet-bound traffic → Firewall</td></tr>
+          <tr><td class="dest">10.0.0.0/16</td><td class="hop">VirtualAppliance</td><td class="ip">10.0.4.4</td><td style="font-size:0.8em;color:var(--text-muted)">Internal VNet traffic also inspected</td></tr>
+        </tbody>
+      </table>`
+  },
+
+  // ── SLIDE 20: HANDS-ON 4 ──
+  {
+    part: 'CS 2',
+    notes: 'The template creates VNet, 4 subnets, 3 NSGs, 3 ASGs, 1 route table in a single deployment. Show deployment progress in Portal.',
+    html: `
+      <div class="hands-on-slide">
+        <div class="hands-on-badge">🛠 Hands-On 4 · 20 mins · 3-Tier Network</div>
+        <h2><span class="slide-num">20</span>Deploy 3-Tier Security Network</h2>
+        <h3>Step 1 — Resource Group</h3>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang bash">BASH</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <div class="code-body"><span class="t-fn">az</span> group create \
+  <span class="t-flag">--name</span> rg-fintrust-prod \
+  <span class="t-flag">--location</span> eastus \
+  <span class="t-flag">--tags</span> environment=prod compliance=pci-dss</div>
+        </div>
+        <h3>Step 2 — Deploy (creates VNet, 4 subnets, 3 NSGs, 3 ASGs)</h3>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang bash">BASH</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <div class="code-body"><span class="t-fn">az</span> deployment group create \
+  <span class="t-flag">--resource-group</span> rg-fintrust-prod \
+  <span class="t-flag">--template-file</span> case-study-2/arm/network-security.json \
+  <span class="t-flag">--parameters</span> prefix=fintrust location=eastus</div>
+        </div>
+        <h3>Step 3 — List NSGs</h3>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang bash">BASH</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <div class="code-body"><span class="t-fn">az</span> network nsg list \
+  <span class="t-flag">--resource-group</span> rg-fintrust-prod \
+  <span class="t-flag">--output</span> table</div>
+        </div>
+      </div>`
+  },
+
+  // ── SLIDE 21: HANDS-ON 5 ──
+  {
+    part: 'CS 2',
+    notes: 'Run validate.sh together as a class. Discuss each PASS/FAIL result.',
+    html: `
+      <div class="hands-on-slide">
+        <div class="hands-on-badge">🛠 Hands-On 5 · 10 mins · Security Validation</div>
+        <h2><span class="slide-num">21</span>Validate Security Rules</h2>
+        <h3>Inspect NSG rules</h3>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang bash">BASH</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <div class="code-body"><span class="t-fn">az</span> network nsg rule list \
+  <span class="t-flag">--resource-group</span> rg-fintrust-prod \
+  <span class="t-flag">--nsg-name</span> nsg-web-fintrust \
+  <span class="t-flag">--output</span> table</div>
+        </div>
+        <h3>Run automated validation</h3>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang bash">BASH</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <div class="code-body">chmod +x case-study-2/scripts/validate.sh
+./case-study-2/scripts/validate.sh rg-fintrust-prod fintrust</div>
+        </div>
+        <div style="background:var(--code-bg);border:1px solid var(--border);border-radius:6px;padding:12px;font-family:monospace;font-size:0.8em;margin-top:6px">
+          <div style="color:var(--green)">✓ PASS  nsg-web-fintrust found</div>
+          <div style="color:var(--green)">✓ PASS  snet-web has NSG attached</div>
+          <div style="color:var(--green)">✓ PASS  Port 80 allow rule exists</div>
+          <div style="color:var(--green)">✓ PASS  asg-web-servers found</div>
+          <div style="color:var(--yellow)">⚠ WARN  No route table on web subnet yet — add UDR next</div>
+        </div>
+      </div>`
+  },
+
+  // ── SLIDE 22: HANDS-ON 6 UDR ──
+  {
+    part: 'CS 2',
+    notes: 'After associating the route table, re-run validate.sh — the warning should become a PASS.',
+    html: `
+      <div class="hands-on-slide">
+        <div class="hands-on-badge">🛠 Hands-On 6 · 10 mins · UDR Config</div>
+        <h2><span class="slide-num">22</span>Configure User Defined Routes</h2>
+        <h3>Create Route Table</h3>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang bash">BASH</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <div class="code-body"><span class="t-fn">az</span> network route-table create \
+  <span class="t-flag">--resource-group</span> rg-fintrust-prod \
+  <span class="t-flag">--name</span> rt-web-tier \
+  <span class="t-flag">--location</span> eastus \
+  <span class="t-flag">--disable-bgp-route-propagation</span> true
+
+<span class="t-fn">az</span> network route-table route create \
+  <span class="t-flag">--resource-group</span> rg-fintrust-prod \
+  <span class="t-flag">--route-table-name</span> rt-web-tier \
+  <span class="t-flag">--name</span> route-all-to-firewall \
+  <span class="t-flag">--address-prefix</span> 0.0.0.0/0 \
+  <span class="t-flag">--next-hop-type</span> VirtualAppliance \
+  <span class="t-flag">--next-hop-ip-address</span> 10.0.4.4</div>
+        </div>
+        <h3>Associate with Web Subnet</h3>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang bash">BASH</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <div class="code-body"><span class="t-fn">az</span> network vnet subnet update \
+  <span class="t-flag">--resource-group</span> rg-fintrust-prod \
+  <span class="t-flag">--vnet-name</span> vnet-fintrust \
+  <span class="t-flag">--name</span> snet-web \
+  <span class="t-flag">--route-table</span> rt-web-tier</div>
+        </div>
+      </div>`
+  },
+
+  // ── PART III BANNER ──
+  {
+    part: 'Part III',
+    notes: '',
+    html: `
+      <div class="slide-part-banner">
+        <div class="part-badge">Part III</div>
+        <h1>Summary &amp; Q&amp;A</h1>
+        <p style="color:var(--text-muted);font-size:1.1em">10 Minutes</p>
+      </div>`
+  },
+
+  // ── SLIDE 23: WHAT WE BUILT ──
+  {
+    part: 'Part III',
+    notes: 'Ask learners: "What was the most surprising thing you learned today?"',
+    html: `
+      <h2><span class="slide-num">23</span>What We Built Today</h2>
+      <div class="summary-grid">
+        <div class="summary-card" style="border-color:var(--purple)">
+          <h3>Case Study 1 — SecureInsure</h3>
+          <ul>
+            <li><span class="check">✓</span> Modular, parameterized ARM templates</li>
+            <li><span class="check">✓</span> 3 environments from 1 template</li>
+            <li><span class="check">✓</span> Bicep — 40% fewer lines, same power</li>
+            <li><span class="check">✓</span> Multi-region deploy (East US + East US 2)</li>
+          </ul>
+        </div>
+        <div class="summary-card" style="border-color:var(--orange)">
+          <h3>Case Study 2 — FinTrust Bank</h3>
+          <ul>
+            <li><span class="check">✓</span> 3-tier network segmentation</li>
+            <li><span class="check">✓</span> NSGs with explicit allow/deny</li>
+            <li><span class="check">✓</span> ASGs for dynamic VM grouping</li>
+            <li><span class="check">✓</span> UDRs routing through Azure Firewall</li>
+          </ul>
+        </div>
+      </div>
+      <div style="background:rgba(0,120,212,0.06);border:1px solid var(--azure-blue);border-radius:8px;padding:12px 16px;margin-top:12px;font-size:0.88em">
+        <strong style="color:var(--azure-light)">Total resources deployed today:</strong>
+        <span style="color:var(--text-muted)"> VNets · Subnets · NSGs · ASGs · Route Tables · VMs · NICs · Public IPs — all via code, zero portal clicks.</span>
+      </div>`
+  },
+
+  // ── SLIDE 24: KEY TAKEAWAYS ──
+  {
+    part: 'Part III',
+    notes: '',
+    html: `
+      <h2><span class="slide-num">24</span>Key Takeaways</h2>
+      <div class="takeaway-list">
+        <div class="takeaway">
+          <div class="takeaway-num">1</div>
+          <div class="takeaway-body">
+            <strong>ARM Templates</strong>
+            <span>Idempotent, declarative Infrastructure as Code for Azure. JSON-based, but powerful.</span>
+          </div>
+        </div>
+        <div class="takeaway">
+          <div class="takeaway-num">2</div>
+          <div class="takeaway-body">
+            <strong>Bicep</strong>
+            <span>Cleaner syntax that compiles to ARM. Not a replacement — an improvement. Use it for new projects.</span>
+          </div>
+        </div>
+        <div class="takeaway">
+          <div class="takeaway-num">3</div>
+          <div class="takeaway-body">
+            <strong>NSGs</strong>
+            <span>Firewall at subnet/NIC level. Always use least-privilege: allowlist + deny-all.</span>
+          </div>
+        </div>
+        <div class="takeaway">
+          <div class="takeaway-num">4</div>
+          <div class="takeaway-body">
+            <strong>ASGs</strong>
+            <span>Group VMs by role, not by IP. Rules stay stable as your infrastructure scales.</span>
+          </div>
+        </div>
+        <div class="takeaway">
+          <div class="takeaway-num">5</div>
+          <div class="takeaway-body">
+            <strong>UDRs</strong>
+            <span>Override Azure's default routing to force traffic through a security appliance.</span>
+          </div>
+        </div>
+      </div>`
+  },
+
+  // ── SLIDE 25: CLEANUP ──
+  {
+    part: 'Part III',
+    notes: 'Do this TOGETHER as a class. Azure charges start immediately for VMs. Confirm deletion before ending the session.',
+    html: `
+      <h2><span class="slide-num">25</span>Cleanup — Important!</h2>
+      <div style="background:rgba(248,81,73,0.08);border:1px solid var(--red);border-radius:8px;padding:12px 16px;margin-bottom:14px">
+        <strong style="color:var(--red)">⚠️ Do this now</strong> — Azure charges for running VMs even when idle. Delete all resources before leaving.
+      </div>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang bash">BASH — delete all session resources</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <div class="code-body"><span class="t-fn">az</span> group delete <span class="t-flag">--name</span> rg-secureinsure-dev     <span class="t-flag">--yes</span> <span class="t-flag">--no-wait</span>
+<span class="t-fn">az</span> group delete <span class="t-flag">--name</span> rg-secureinsure-staging  <span class="t-flag">--yes</span> <span class="t-flag">--no-wait</span>
+<span class="t-fn">az</span> group delete <span class="t-flag">--name</span> rg-secureinsure-dr       <span class="t-flag">--yes</span> <span class="t-flag">--no-wait</span>
+<span class="t-fn">az</span> group delete <span class="t-flag">--name</span> rg-fintrust-prod         <span class="t-flag">--yes</span> <span class="t-flag">--no-wait</span></div>
+      </div>
+      <h3>Verify cleanup</h3>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang bash">BASH</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <div class="code-body"><span class="t-fn">az</span> group list \
+  <span class="t-flag">--query</span> <span class="t-str">"[?starts_with(name,'rg-secureinsure') || starts_with(name,'rg-fintrust')]"</span> \
+  <span class="t-flag">--output</span> table
+<span class="t-cmt"># Should return empty list once deletion completes (~2-5 mins)</span></div>
+      </div>`
+  },
+
+  // ── SLIDE 26: WHAT'S NEXT ──
+  {
+    part: 'Part III',
+    notes: '',
+    html: `
+      <h2><span class="slide-num">26</span>What's Next?</h2>
+      <div class="next-grid">
+        <div class="next-item" style="border-color:var(--azure-blue)">
+          <span class="next-icon">🌐</span>
+          <div>
+            <div style="font-weight:600;color:var(--azure-light)">Azure Traffic Manager</div>
+            <div style="font-size:0.78em;color:var(--text-muted)">Global DNS-based load balancing</div>
+          </div>
+        </div>
+        <div class="next-item" style="border-color:var(--green)">
+          <span class="next-icon">🔁</span>
+          <div>
+            <div style="font-weight:600;color:var(--green)">Azure Site Recovery</div>
+            <div style="font-size:0.78em;color:var(--text-muted)">Disaster recovery with failover automation</div>
+          </div>
+        </div>
+        <div class="next-item" style="border-color:var(--purple)">
+          <span class="next-icon">🌍</span>
+          <div>
+            <div style="font-weight:600;color:var(--purple)">Azure DNS</div>
+            <div style="font-size:0.78em;color:var(--text-muted)">Custom domains and DNS zones</div>
+          </div>
+        </div>
+        <div class="next-item" style="border-color:var(--orange)">
+          <span class="next-icon">📊</span>
+          <div>
+            <div style="font-weight:600;color:var(--orange)">Azure Monitor + Log Analytics</div>
+            <div style="font-size:0.78em;color:var(--text-muted)">Observability, alerts, and audit logs</div>
+          </div>
+        </div>
+      </div>
+      <h3 style="margin-top:14px">Resources</h3>
+      <div style="display:flex;flex-direction:column;gap:6px;font-size:0.85em">
+        <div style="background:var(--bg-card2);border:1px solid var(--border);border-radius:6px;padding:8px 14px;font-family:monospace">learn.microsoft.com/azure/azure-resource-manager/templates</div>
+        <div style="background:var(--bg-card2);border:1px solid var(--border);border-radius:6px;padding:8px 14px;font-family:monospace">learn.microsoft.com/azure/azure-resource-manager/bicep</div>
+        <div style="background:var(--bg-card2);border:1px solid var(--border);border-radius:6px;padding:8px 14px;font-family:monospace">learn.microsoft.com/cli/azure</div>
+      </div>`
+  },
+
+  // ── SLIDE 27: Q&A ──
+  {
+    part: 'Part III',
+    notes: 'Common questions are pre-loaded. Give learners 5 minutes for open Q&A. Thank them and share the GitHub repo link.',
+    html: `
+      <h2><span class="slide-num">27</span>Q &amp; A</h2>
+      <div class="qa-list">
+        <div class="qa-item">
+          <div class="qa-q">Q: When should I use ARM vs Bicep vs Terraform?</div>
+          <div class="qa-a"><strong>ARM/Bicep</strong> for Azure-native projects. <strong>Terraform</strong> when you're multi-cloud (AWS + Azure + GCP). Bicep is preferred over raw ARM for new Azure-only work.</div>
+        </div>
+        <div class="qa-item">
+          <div class="qa-q">Q: Can NSG rules use domain names (FQDNs) instead of IPs?</div>
+          <div class="qa-a">No — NSGs only support IP addresses / CIDR and ASG references. For FQDN-based filtering, use <strong>Azure Firewall Application Rules</strong>.</div>
+        </div>
+        <div class="qa-item">
+          <div class="qa-q">Q: What's the difference between UDR and Azure Firewall?</div>
+          <div class="qa-a"><strong>UDR</strong> is routing — it redirects packets. <strong>Azure Firewall</strong> is the inspection engine that sits at the destination. They work together: UDR forces traffic to the Firewall.</div>
+        </div>
+        <div class="qa-item">
+          <div class="qa-q">Q: Is Bicep production-ready?</div>
+          <div class="qa-a">Yes. <strong>Fully supported by Microsoft since 2021.</strong> All new Azure services support Bicep. The Azure docs now default to Bicep examples.</div>
+        </div>
+      </div>`
+  }
+];
+
+// ─────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────
+let current = 0;
+let timerRunning = false;
+let timerSeconds = 0;
+let timerInterval = null;
+let notesVisible = false;
+
+const partMap = {
+  'Title': 'Title',
+  'Part I': 'Part I',
+  'CS 1': 'Case Study 1',
+  'CS 2': 'Case Study 2',
+  'Part III': 'Part III'
+};
+
+// ─────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────
+function init() {
+  const stage = document.getElementById('stage');
+  const navCenter = document.getElementById('nav-center');
+  const total = slides.length;
+
+  document.getElementById('tot').textContent = total;
+
+  // Build all slides
+  slides.forEach((s, i) => {
+    const div = document.createElement('div');
+    div.className = 'slide' + (i === 0 ? ' active' : '');
+    div.id = 'slide-' + i;
+    div.innerHTML = s.html;
+    stage.appendChild(div);
+
+    // Nav dot
+    const dot = document.createElement('div');
+    dot.className = 'dot' + (i === 0 ? ' active' : '');
+    dot.title = 'Slide ' + (i + 1);
+    dot.onclick = () => goTo(i);
+    navCenter.appendChild(dot);
+  });
+
+  updateUI();
+}
+
+// ─────────────────────────────────────────────
+// NAVIGATION
+// ─────────────────────────────────────────────
+function goTo(n) {
+  if (n < 0 || n >= slides.length) return;
+  document.getElementById('slide-' + current).classList.remove('active');
+  document.querySelectorAll('.dot')[current].classList.remove('active');
+  current = n;
+  document.getElementById('slide-' + current).classList.add('active');
+  document.querySelectorAll('.dot')[current].classList.add('active');
+  updateUI();
+}
+
+function next() { goTo(current + 1); }
+function prev() { goTo(current - 1); }
+
+function updateUI() {
+  const total = slides.length;
+  const s = slides[current];
+
+  document.getElementById('cur').textContent = current + 1;
+  document.getElementById('progress-fill').style.width = ((current + 1) / total * 100) + '%';
+  document.getElementById('btn-prev').disabled = current === 0;
+  document.getElementById('btn-next').disabled = current === total - 1;
+  document.getElementById('part-label').textContent = partMap[s.part] || s.part;
+
+  // Notes
+  const notesText = document.getElementById('notes-text');
+  const notesPanel = document.getElementById('notes-panel');
+  if (s.notes) {
+    notesText.textContent = s.notes;
+    if (notesVisible) notesPanel.classList.add('visible');
+  } else {
+    notesText.textContent = '';
+    notesPanel.classList.remove('visible');
+  }
+}
+
+// ─────────────────────────────────────────────
+// TIMER
+// ─────────────────────────────────────────────
+function toggleTimer() {
+  const btn = document.getElementById('timer-btn');
+  if (timerRunning) {
+    clearInterval(timerInterval);
+    timerRunning = false;
+    btn.textContent = 'Resume';
+  } else {
+    timerInterval = setInterval(() => {
+      timerSeconds++;
+      const m = String(Math.floor(timerSeconds / 60)).padStart(2, '0');
+      const s = String(timerSeconds % 60).padStart(2, '0');
+      document.getElementById('timer').textContent = m + ':' + s;
+      // Warn at 2:20 (140 min) and 2:30 (150 min)
+      const el = document.getElementById('timer');
+      if (timerSeconds >= 9000) el.style.color = 'var(--red)';
+      else if (timerSeconds >= 8400) el.style.color = 'var(--yellow)';
+    }, 1000);
+    timerRunning = true;
+    btn.textContent = 'Pause';
+  }
+}
+
+// ─────────────────────────────────────────────
+// NOTES
+// ─────────────────────────────────────────────
+function toggleNotes() {
+  notesVisible = !notesVisible;
+  const panel = document.getElementById('notes-panel');
+  const btn = document.getElementById('notes-toggle');
+  const s = slides[current];
+  if (notesVisible && s.notes) {
+    panel.classList.add('visible');
+    btn.classList.add('on');
+  } else {
+    panel.classList.remove('visible');
+    btn.classList.remove('on');
+  }
+}
+
+// ─────────────────────────────────────────────
+// COPY CODE
+// ─────────────────────────────────────────────
+function copyCode(btn) {
+  const body = btn.closest('.code-block').querySelector('.code-body');
+  // Strip HTML tags for plain text
+  const text = body.innerText || body.textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+  }).catch(() => {
+    btn.textContent = 'Failed';
+    setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+  });
+}
+
+// ─────────────────────────────────────────────
+// SHORTCUTS
+// ─────────────────────────────────────────────
+function toggleShortcuts() {
+  const ov = document.getElementById('shortcuts-overlay');
+  ov.classList.toggle('visible');
+}
+
+document.addEventListener('keydown', e => {
+  const ov = document.getElementById('shortcuts-overlay');
+  if (e.key === 'Escape') { ov.classList.remove('visible'); return; }
+  if (ov.classList.contains('visible')) return;
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); next(); }
+  else if (e.key === 'ArrowLeft') { e.preventDefault(); prev(); }
+  else if (e.key === 'Home') { e.preventDefault(); goTo(0); }
+  else if (e.key === 'End') { e.preventDefault(); goTo(slides.length - 1); }
+  else if (e.key === 'n' || e.key === 'N') toggleNotes();
+  else if (e.key === 't' || e.key === 'T') toggleTimer();
+});
+
+// ─────────────────────────────────────────────
+// TOUCH SUPPORT
+// ─────────────────────────────────────────────
+let touchX = 0;
+document.getElementById('stage').addEventListener('touchstart', e => { touchX = e.touches[0].clientX; });
+document.getElementById('stage').addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - touchX;
+  if (Math.abs(dx) > 50) dx < 0 ? next() : prev();
+});
+
+// ─────────────────────────────────────────────
+// START
+// ─────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
