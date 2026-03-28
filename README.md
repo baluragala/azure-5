@@ -1,19 +1,4 @@
 # Introduction to Azure - II: Live Session Tutorial
-## Duration: 2 Hours 30 Minutes
-
----
-
-## Session Outline
-
-| Part | Topic | Duration |
-|------|-------|----------|
-| Part I | Introduction & Overview | 10 mins |
-| Part II | Case Study 1 – ARM Templates & Bicep | 50 mins |
-| Part II | Case Study 2 – NSGs, ASGs & Custom Routing | 50 mins |
-| Part III | Summary & Doubt Resolution | 10 mins |
-| **Total** | | **120 mins** |
-
----
 
 ## Prerequisites
 
@@ -25,6 +10,7 @@ Before the session, ensure you have:
 4. **Azure Cloud Shell** (fallback — works in browser)
 
 ### Quick Verification
+
 ```bash
 az --version          # Should show 2.x or higher
 az login              # Log into your Azure account
