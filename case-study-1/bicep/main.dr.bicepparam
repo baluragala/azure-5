@@ -1,9 +1,3 @@
-// Bicep parameter file for DR (Disaster Recovery) deployment in East US 2
-// Usage: az deployment group create --template-file main.bicep --parameters main.dr.bicepparam
-//
-// NOTE: Uses prod-tier VM size and a non-overlapping address space (10.2.x.x)
-//       so that VNet peering with the primary (10.1.x.x) can be established.
-
 using './main.bicep'
 
 param prefix = 'secureinsure'

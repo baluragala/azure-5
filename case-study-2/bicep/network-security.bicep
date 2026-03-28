@@ -322,7 +322,6 @@ resource routeTableWeb 'Microsoft.Network/routeTables@2023-04-01' = {
           addressPrefix: '0.0.0.0/0'
           nextHopType: 'VirtualAppliance'
           nextHopIpAddress: '10.0.4.4'
-          description: 'Default route: all outbound traffic goes through Azure Firewall'
         }
       }
       {
@@ -331,7 +330,6 @@ resource routeTableWeb 'Microsoft.Network/routeTables@2023-04-01' = {
           addressPrefix: vnetAddressPrefix
           nextHopType: 'VirtualAppliance'
           nextHopIpAddress: '10.0.4.4'
-          description: 'East-West VNet traffic also goes through Firewall'
         }
       }
     ]
