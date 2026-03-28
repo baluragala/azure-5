@@ -63,10 +63,12 @@ case-study-1/
 │   ├── main.json                ← Full ARM template (parameterized)
 │   ├── params.dev.json          ← Dev environment parameters
 │   ├── params.staging.json      ← Staging parameters
-│   └── params.prod.json         ← Production parameters
+│   ├── params.prod.json         ← Production parameters
+│   └── params.dr.json           ← DR environment parameters (eastus2, 10.2.0.0/16)
 ├── bicep/
 │   ├── main.bicep               ← Bicep version of the ARM template
-│   ├── main.bicepparam          ← Bicep parameter file
+│   ├── main.bicepparam          ← Bicep parameter file (dev)
+│   ├── main.dr.bicepparam       ← Bicep parameter file (DR — eastus2, 10.2.0.0/16)
 │   ├── vnet-peering.bicep       ← VNet peering: Primary ↔ DR (subscription scope)
 │   └── modules/
 │       └── peer-link.bicep      ← Reusable module: one directional peering link
@@ -284,15 +286,33 @@ vnet-peering.bicep          ← targetScope = 'subscription'
 
 ### Step 7: Multi-Region DR Deployment (5 mins)
 
+Deploy the same template to East US 2 using the DR parameter files.
+
+**Option A — Bicep:**
 ```bash
-# Deploy to West US as Disaster Recovery
+# Create the DR resource group in East US 2
+az group create --name rg-secureinsure-dr --location eastus2
+
+# Deploy using the DR Bicep parameter file
+az deployment group create \
+  --name "deploy-dr-$(date +%Y%m%d-%H%M%S)" \
+  --resource-group rg-secureinsure-dr \
+  --template-file case-study-1/bicep/main.bicep \
+  --parameters @case-study-1/bicep/main.dr.bicepparam
+```
+
+**Option B — ARM:**
+```bash
 az group create --name rg-secureinsure-dr --location eastus2
 
 az deployment group create \
+  --name "deploy-dr-$(date +%Y%m%d-%H%M%S)" \
   --resource-group rg-secureinsure-dr \
-  --template-file case-study-1/bicep/main.bicep \
-  --parameters environment=prod location=eastus2 prefix=secureinsure vnetAddressPrefix=10.2.0.0/16
+  --template-file case-study-1/arm/main.json \
+  --parameters @case-study-1/arm/params.dr.json
+```
 
+```bash
 # Verify both regions are deployed
 az group list \
   --query "[?starts_with(name,'rg-secureinsure')]" \
@@ -374,7 +394,7 @@ az group delete --name rg-secureinsure-dr --yes --no-wait
 | Resource dependencies | `dependsOn` in ARM, implicit in Bicep |
 | Multi-environment reuse | Same template, 3 different param files |
 | ARM → Bicep migration | `az bicep decompile` command |
-| Multi-region deployment | Two separate deployments, different `location` |
+| Multi-region deployment | `params.dr.json` / `main.dr.bicepparam` → eastus2 |
 | VNet Peering (what/why/how) | VNet Peering section above |
 | Cross-RG Bicep deployment | `vnet-peering.bicep` with `targetScope = 'subscription'` |
 | Bicep modules | `modules/peer-link.bicep` called twice with different scopes |
