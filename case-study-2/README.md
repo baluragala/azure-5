@@ -89,12 +89,15 @@ FinTrust Bank is migrating its core banking application to Azure. Due to strict 
 
 ```
 case-study-2/
-├── README.md                   ← This file
+├── README.md                        ← This file
 ├── arm/
-│   └── network-security.json   ← Full ARM template for 3-tier network
+│   └── network-security.json        ← Full ARM template for 3-tier network
+├── bicep/
+│   └── network-security.bicep       ← Bicep equivalent (same resources, cleaner syntax)
 └── scripts/
-    ├── deploy.sh               ← Deploys the full 3-tier network
-    └── validate.sh             ← Validates NSG rules and connectivity
+    ├── deploy.sh                    ← Deploys the full 3-tier network (ARM)
+    ├── deploy-bicep.sh              ← Deploys the full 3-tier network (Bicep)
+    └── validate.sh                  ← Validates NSG rules and connectivity
 ```
 
 ---
@@ -110,11 +113,18 @@ az group create \
   --location eastus \
   --tags environment=prod project=fintrust compliance=pci-dss
 
-# Deploy the full ARM template
+# Option A — Deploy via ARM template
 az deployment group create \
   --name "fintrust-deploy-$(date +%Y%m%d-%H%M%S)" \
   --resource-group rg-fintrust-prod \
   --template-file case-study-2/arm/network-security.json \
+  --parameters prefix=fintrust location=eastus
+
+# Option B — Deploy via Bicep (identical result, cleaner syntax)
+az deployment group create \
+  --name "fintrust-deploy-$(date +%Y%m%d-%H%M%S)" \
+  --resource-group rg-fintrust-prod \
+  --template-file case-study-2/bicep/network-security.bicep \
   --parameters prefix=fintrust location=eastus
 
 # Verify
